@@ -23,52 +23,73 @@ const server = http.createServer(app);
 // Websocket stuff
 const wsServer = new WebSocketServer({ noServer: true });
 const connections = {};
-const users = {};
+const rooms = {};
 
 const handleMessage = (bytes, uuid) => {
   const message = JSON.parse(bytes.toString());
-  const user = users[uuid];
+  const user = rooms[connections[uuid].room].users[uuid];
 
   user.state = message;
 
   broadcast();
 
-  console.log(
-    `${user.username} updated their state: ${JSON.stringify(user.state)}`
-  );
+  // console.log(
+  //   `${user.username} updated their state: ${JSON.stringify(user.state)}`
+  // );
 };
 
 const handleClose = (uuid) => {
-  console.log(`User ${users[uuid].username} has disconnected`);
+  const roomID = connections[uuid].room;
+
+  console.log(`User ${rooms[roomID].users[uuid].username} has disconnected`);
 
   delete connections[uuid];
-  delete users[uuid];
+  delete rooms[roomID].users[uuid];
+  // If room is empty, delete it
+  if (Object.keys(rooms[roomID].users).length == 0) {
+    delete rooms[roomID];
+  }
 
   broadcast();
 };
 
 const broadcast = () => {
-  Object.keys(connections).forEach((uuid) => {
-    const connection = connections[uuid];
-    const message = JSON.stringify(users);
-    connection.send(message);
+  Object.keys(rooms).forEach((roomID) => {
+    Object.keys(rooms[roomID].users).forEach((uuid) => {
+      const connection = connections[uuid];
+      const message = JSON.stringify(rooms[roomID].users);
+
+      connection.send(message);
+    });
   });
 };
 
 wsServer.on("connection", (connection, request) => {
-  const { username } = url.parse(request.url, true).query;
+  console.log(url.parse(request.url, true).query);
+
+  const { username, roomID } = url.parse(request.url, true).query;
   const uuid = uuidv4();
-  console.log(`New connection from ${username}`);
+  console.log(`[${roomID}] New connection from ${username}`);
 
   connections[uuid] = connection;
+  connections[uuid].room = roomID;
 
-  users[uuid] = {
+  // If room doesn't exist, create it
+  if (rooms[roomID] === undefined) {
+    console.log(`Created new room [${roomID}]!`);
+    rooms[roomID] = new Object();
+    rooms[roomID].users = new Object();
+  }
+
+  rooms[roomID].users[uuid] = {
     username: username,
     state: {
       cursorX: -1,
       cursorY: -1,
     },
   };
+
+  console.log(`Room [${roomID}]: ${JSON.stringify(rooms[roomID])}`);
 
   connection.on("message", (message) => handleMessage(message, uuid));
   connection.on("close", () => handleClose(uuid));

@@ -9,12 +9,19 @@ import { OneShotDND } from "./OneShotDND";
 
 function App() {
   const [username, setUsername] = useState("");
+  const [roomID, setRoomID] = useState("");
 
+  const login = (username, roomID) => {
+    setUsername(username);
+    setRoomID(roomID);
+  };
+
+  // If user is logged in
   return username ? (
-    <OneShotDND username={username} />
+    <OneShotDND username={username} roomID={roomID} />
   ) : (
     <>
-      <Login onSubmit={setUsername} />
+      <Login onSubmit={login} />
     </>
   );
 }

@@ -12,7 +12,7 @@ const renderUsersList = (users) => {
   );
 };
 
-export function OneShotDND({ username }) {
+export function OneShotDND({ username, roomID }) {
   let WS_URL;
 
   if (process.env.NODE_ENV === "development") {
@@ -25,7 +25,7 @@ export function OneShotDND({ username }) {
 
   const { sendJsonMessage, lastJsonMessage } = useWebSocket(WS_URL, {
     share: true,
-    queryParams: { username },
+    queryParams: { username, roomID },
   });
 
   const THROTTLE_MS = 50;
