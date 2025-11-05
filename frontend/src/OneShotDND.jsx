@@ -13,11 +13,15 @@ const renderUsersList = (users) => {
 };
 
 export function OneShotDND({ username }) {
-  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  let WS_URL;
 
-  const host = window.location.host;
-
-  const WS_URL = `${protocol}//${host}/ws`;
+  if (process.env.NODE_ENV === "development") {
+    WS_URL = import.meta.env.VITE_DEV_WS_URL || "ws://localhost:8000/ws";
+  } else {
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const host = window.location.host;
+    WS_URL = `${protocol}//${host}/ws`;
+  }
 
   const { sendJsonMessage, lastJsonMessage } = useWebSocket(WS_URL, {
     share: true,
