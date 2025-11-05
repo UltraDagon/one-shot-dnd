@@ -13,7 +13,11 @@ const renderUsersList = (users) => {
 };
 
 export function OneShotDND({ username }) {
-  const WS_URL = "ws://127.0.0.1:10000/ws";
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+
+  const host = window.location.host;
+
+  const WS_URL = `${protocol}://${host}/ws`;
 
   const { sendJsonMessage, lastJsonMessage } = useWebSocket(WS_URL, {
     share: true,
