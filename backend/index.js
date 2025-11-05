@@ -9,7 +9,7 @@ const uuidv4 = require("uuid").v4;
 
 // Express app stuff
 const app = express();
-const port = 8000;
+const port = process.env.PORT || 8000;
 
 const buildPath = path.join(__dirname, "..", "frontend", "dist");
 app.use(express.static(buildPath));
